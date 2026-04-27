@@ -7,12 +7,20 @@ from apps.payouts.models import BankAccount, LedgerEntry, Merchant, Payout
 class Command(BaseCommand):
     help = "Seed demo merchants, bank accounts, ledger history, and payouts"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--reset",
+            action="store_true",
+            help="Delete existing payout demo data before seeding",
+        )
+
     @transaction.atomic
     def handle(self, *args, **options):
-        Payout.objects.all().delete()
-        LedgerEntry.objects.all().delete()
-        BankAccount.objects.all().delete()
-        Merchant.objects.all().delete()
+        if options["reset"]:
+            Payout.objects.all().delete()
+            LedgerEntry.objects.all().delete()
+            BankAccount.objects.all().delete()
+            Merchant.objects.all().delete()
 
         merchants = [
             {
@@ -57,49 +65,63 @@ class Command(BaseCommand):
         ]
 
         for merchant_seed in merchants:
-            merchant = Merchant.objects.create(
-                name=merchant_seed["name"],
+            merchant, _ = Merchant.objects.update_or_create(
                 slug=merchant_seed["slug"],
-                email=merchant_seed["email"],
+                defaults={
+                    "name": merchant_seed["name"],
+                    "email": merchant_seed["email"],
+                },
             )
-            bank_account = BankAccount.objects.create(merchant=merchant, **merchant_seed["bank"])
+            bank_account, _ = BankAccount.objects.update_or_create(
+                merchant=merchant,
+                label=merchant_seed["bank"]["label"],
+                defaults=merchant_seed["bank"],
+            )
             for index, amount in enumerate(merchant_seed["credits"], start=1):
-                LedgerEntry.objects.create(
+                LedgerEntry.objects.update_or_create(
                     merchant=merchant,
-                    entry_type=LedgerEntry.EntryType.CREDIT,
-                    available_delta_paise=amount,
-                    held_delta_paise=0,
                     reference=f"seed-credit-{index}",
-                    description="Simulated inbound USD collection",
+                    defaults={
+                        "entry_type": LedgerEntry.EntryType.CREDIT,
+                        "available_delta_paise": amount,
+                        "held_delta_paise": 0,
+                        "description": "Simulated inbound USD collection",
+                    },
                 )
 
             completed_amount = merchant_seed["completed_payout"]
             if completed_amount:
-                payout = Payout.objects.create(
+                payout, _ = Payout.objects.update_or_create(
                     merchant=merchant,
-                    bank_account=bank_account,
-                    amount_paise=completed_amount,
                     idempotency_key=f"seed-{merchant.slug}",
-                    status=Payout.Status.COMPLETED,
-                    attempt_count=1,
+                    defaults={
+                        "bank_account": bank_account,
+                        "amount_paise": completed_amount,
+                        "status": Payout.Status.COMPLETED,
+                        "attempt_count": 1,
+                    },
                 )
-                LedgerEntry.objects.create(
+                LedgerEntry.objects.update_or_create(
                     merchant=merchant,
-                    payout=payout,
-                    entry_type=LedgerEntry.EntryType.HOLD,
-                    available_delta_paise=-completed_amount,
-                    held_delta_paise=completed_amount,
-                    reference=str(payout.id),
-                    description="Seed payout hold",
+                    reference=f"seed-hold-{merchant.slug}",
+                    defaults={
+                        "payout": payout,
+                        "entry_type": LedgerEntry.EntryType.HOLD,
+                        "available_delta_paise": -completed_amount,
+                        "held_delta_paise": completed_amount,
+                        "description": "Seed payout hold",
+                    },
                 )
-                LedgerEntry.objects.create(
+                LedgerEntry.objects.update_or_create(
                     merchant=merchant,
-                    payout=payout,
-                    entry_type=LedgerEntry.EntryType.DEBIT,
-                    available_delta_paise=0,
-                    held_delta_paise=-completed_amount,
-                    reference=str(payout.id),
-                    description="Seed payout completion",
+                    reference=f"seed-debit-{merchant.slug}",
+                    defaults={
+                        "payout": payout,
+                        "entry_type": LedgerEntry.EntryType.DEBIT,
+                        "available_delta_paise": 0,
+                        "held_delta_paise": -completed_amount,
+                        "description": "Seed payout completion",
+                    },
                 )
 
         self.stdout.write(self.style.SUCCESS("Seeded demo payout data"))

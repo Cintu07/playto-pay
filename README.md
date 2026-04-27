@@ -30,6 +30,26 @@ This is a small payout engine for the Playto founding engineer challenge. The ba
 8. Start the scheduler with `celery -A config beat -l info`.
 9. Start the dashboard with `npm run dev` inside `frontend`.
 
+## Deployment
+
+The easiest path for this project is Render because it can run the Django API, Celery worker, Celery beat, Postgres, Redis, and the static frontend as separate services.
+
+Files added for deployment:
+
+- `render.yaml` for the full stack layout
+- `gunicorn` for the Django web process
+- `/health/` endpoint for a simple health check
+- a non-destructive seed command that can be rerun safely
+
+Important note for the frontend:
+
+- In local dev it uses the Vite proxy and calls `/api/...`
+- In deployment it reads `VITE_API_BASE_URL` so the frontend can call a separate backend URL
+
+If you use Render, create the services from `render.yaml`, then set `VITE_API_BASE_URL` on the frontend to your API base URL like `https://your-api.onrender.com`.
+
+For demo data in a hosted environment, run `python manage.py seed_demo_data` once after the first deploy. If you really want to wipe and reseed everything, run `python manage.py seed_demo_data --reset`.
+
 ## Seed data
 
 The seed command creates 3 merchants, one bank account for each merchant, some inbound credit history, and a couple of settled payouts.
@@ -75,6 +95,7 @@ Notes:
 
 - The idempotency test runs on SQLite and PostgreSQL.
 - The concurrency test is intentionally PostgreSQL-only because SQLite does not support the row-locking semantics the challenge is grading.
+- Before submission, run the concurrency test once against PostgreSQL, not SQLite.
 
 ## Frontend
 
