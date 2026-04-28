@@ -6,3 +6,4 @@ redis==5.2.1
 django-cors-headers==4.7.0
 dj-database-url==2.3.0
 gunicorn==23.0.0
+honcho==1.1.0
