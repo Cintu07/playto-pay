@@ -1,2 +1,2 @@
 web: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
-worker: celery -A config worker -B -l info
+worker: celery -A config worker -B -P solo -c 1 --without-gossip --without-mingle --without-heartbeat -l info
