@@ -96,7 +96,3 @@ services:
 
 databases:
   - name: playto-pay-db
-
-databases:
-
-  - name: playto-pay-db
