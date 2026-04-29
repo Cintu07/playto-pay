@@ -99,10 +99,18 @@ cd backend
 python manage.py test apps.payouts
 ```
 
+Run frontend tests:
+
+```bash
+cd frontend
+npm test
+```
+
 Notes:
 
 - The idempotency test runs on SQLite and PostgreSQL.
 - The concurrency test is intentionally PostgreSQL-only because SQLite does not support the row-locking semantics the challenge is grading.
+- The frontend tests cover the stacked dashboard layout and payout form validation, including blocking decimal INR amounts.
 - Before submission, run the concurrency test once against PostgreSQL, not SQLite.
 
 ## Frontend
