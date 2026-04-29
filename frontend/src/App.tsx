@@ -16,6 +16,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
+  const [payoutError, setPayoutError] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
 
   useEffect(() => {
@@ -70,6 +71,7 @@ export default function App() {
     setIsSubmitting(true);
     setSuccessMessage("");
     setError("");
+    setPayoutError("");
     try {
       const result = await createPayout({
         merchantId: selectedMerchantId,
@@ -80,7 +82,9 @@ export default function App() {
       const nextDashboard = await fetchDashboard(selectedMerchantId);
       setDashboard(nextDashboard);
     } catch (submissionError) {
-      setError(submissionError instanceof Error ? submissionError.message : "Failed to create payout");
+      const message = submissionError instanceof Error ? submissionError.message : "Failed to create payout";
+      setPayoutError(message);
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -200,7 +204,13 @@ export default function App() {
             </section>
 
             <section className="grid gap-6 xl:grid-cols-[0.88fr_1.12fr]">
-              <PayoutForm bankAccounts={dashboard.bank_accounts} isSubmitting={isSubmitting} onSubmit={handleCreatePayout} />
+              <PayoutForm
+                bankAccounts={dashboard.bank_accounts}
+                availableBalancePaise={dashboard.balances.available_balance_paise}
+                isSubmitting={isSubmitting}
+                submissionError={payoutError}
+                onSubmit={handleCreatePayout}
+              />
               <PayoutTable payouts={dashboard.payouts} />
             </section>
 

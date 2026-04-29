@@ -5,11 +5,13 @@ import { formatPaise } from "../lib/api";
 
 type PayoutFormProps = {
   bankAccounts: BankAccount[];
+  availableBalancePaise: number;
   isSubmitting: boolean;
+  submissionError: string;
   onSubmit: (input: { amountPaise: number; bankAccountId: string }) => Promise<void>;
 };
 
-export function PayoutForm({ bankAccounts, isSubmitting, onSubmit }: PayoutFormProps) {
+export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, submissionError, onSubmit }: PayoutFormProps) {
   const [amountRupees, setAmountRupees] = useState("500");
   const [bankAccountId, setBankAccountId] = useState(bankAccounts[0]?.id || "");
 
@@ -19,11 +21,20 @@ export function PayoutForm({ bankAccounts, isSubmitting, onSubmit }: PayoutFormP
     }
   }, [bankAccountId, bankAccounts]);
 
+  useEffect(() => {
+    const maxWholeRupees = Math.max(1, Math.floor(availableBalancePaise / 100));
+    const current = Number(amountRupees || "0");
+    if (current > maxWholeRupees) {
+      setAmountRupees(String(maxWholeRupees));
+    }
+  }, [availableBalancePaise, amountRupees]);
+
   const normalizedAmount = Math.round(Number(amountRupees || "0") * 100);
+  const exceedsAvailable = normalizedAmount > availableBalancePaise;
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!normalizedAmount || !bankAccountId) {
+    if (!normalizedAmount || !bankAccountId || exceedsAvailable) {
       return;
     }
     await onSubmit({ amountPaise: normalizedAmount, bankAccountId });
@@ -85,9 +96,25 @@ export function PayoutForm({ bankAccounts, isSubmitting, onSubmit }: PayoutFormP
         Example: ₹{amountRupees || "0"} becomes {formatPaise(normalizedAmount)} in paise before the payout is processed.
       </div>
 
+      <div className="mt-3 rounded-2xl border border-sand/80 bg-sand/35 px-4 py-3 text-sm text-slate">
+        Max payout right now: <span className="font-semibold text-ink">{formatPaise(availableBalancePaise)}</span>
+      </div>
+
+      {exceedsAvailable ? (
+        <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          Requested amount is higher than available balance. Lower the amount and try again.
+        </div>
+      ) : null}
+
+      {submissionError ? (
+        <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {submissionError}
+        </div>
+      ) : null}
+
       <button
         type="submit"
-        disabled={isSubmitting || !bankAccounts.length}
+        disabled={isSubmitting || !bankAccounts.length || exceedsAvailable}
         className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-medium text-white transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Submitting..." : "Create payout"}
