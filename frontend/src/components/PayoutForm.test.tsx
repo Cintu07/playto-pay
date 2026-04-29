@@ -52,4 +52,25 @@ describe("PayoutForm", () => {
     expect(screen.getByText(/Requested amount is higher than available balance/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Create payout" })).toBeDisabled();
   });
+
+  it("blocks submission when the amount contains decimals", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <PayoutForm
+        bankAccounts={bankAccounts}
+        availableBalancePaise={105000}
+        isSubmitting={false}
+        submissionError=""
+        onSubmit={vi.fn().mockResolvedValue(undefined)}
+      />,
+    );
+
+    const amountInput = screen.getByRole("spinbutton", { name: "Amount in INR" });
+    await user.clear(amountInput);
+    await user.type(amountInput, "1.5");
+
+    expect(screen.getByText(/Enter a valid whole-number INR amount/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Create payout" })).toBeDisabled();
+  });
 });

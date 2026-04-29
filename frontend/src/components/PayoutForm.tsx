@@ -22,9 +22,9 @@ export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, 
     }
   }, [bankAccountId, bankAccounts]);
 
-  const parsedAmountRupees = Number(amountRupees);
-  const hasValidAmount = amountRupees.trim() !== "" && Number.isFinite(parsedAmountRupees);
-  const normalizedAmount = hasValidAmount ? Math.round(parsedAmountRupees * 100) : 0;
+  const trimmedAmountRupees = amountRupees.trim();
+  const hasValidAmount = /^\d+$/.test(trimmedAmountRupees);
+  const normalizedAmount = hasValidAmount ? Number(trimmedAmountRupees) * 100 : 0;
   const hasFunds = availableBalancePaise > 0;
   const exceedsAvailable = normalizedAmount > availableBalancePaise;
   const belowMinimum = normalizedAmount < 100;
