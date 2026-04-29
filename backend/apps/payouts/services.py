@@ -100,14 +100,14 @@ def get_balance_snapshot(merchant: Merchant) -> dict[str, int]:
     }
 
 
-def build_dashboard_payload(merchant: Merchant) -> dict:
+def build_dashboard_payload(merchant: Merchant, *, payout_limit: int = 10, ledger_limit: int = 10) -> dict:
     merchant = Merchant.objects.prefetch_related("bank_accounts").get(pk=merchant.pk)
     return {
         "merchant": merchant,
         "balances": get_balance_snapshot(merchant),
         "bank_accounts": merchant.bank_accounts.filter(is_active=True).order_by("label"),
-        "recent_ledger_entries": merchant.ledger_entries.all()[:10],
-        "payouts": merchant.payouts.select_related("bank_account").all()[:10],
+        "recent_ledger_entries": merchant.ledger_entries.all()[:ledger_limit],
+        "payouts": merchant.payouts.select_related("bank_account").all()[:payout_limit],
     }
 
 

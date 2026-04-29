@@ -9,6 +9,7 @@ This is a small payout engine for the Playto founding engineer challenge. The ba
 - Idempotency keys are stored per merchant for 24 hours and replay the first response.
 - Payouts move through `pending -> processing -> completed` or `pending -> processing -> failed`.
 - Stuck payouts are retried by Celery Beat with exponential backoff. After 3 attempts, the payout is marked failed and the held funds are returned.
+- API reads and payout writes are throttled with DRF scoped throttles.
 
 ## Local setup
 
@@ -47,6 +48,7 @@ Important note for the frontend:
 - In deployment it reads `VITE_API_BASE_URL` so the frontend can call a separate backend URL
 
 If you use Render, create the services from `render.yaml`, then set `VITE_API_BASE_URL` on the frontend to your API base URL like `https://your-api.onrender.com`.
+Also set `CORS_ALLOWED_ORIGINS` on the backend to your frontend URL, for example `https://your-ui.onrender.com`.
 
 For demo data in a hosted environment, run `python manage.py seed_demo_data` once after the first deploy. If you really want to wipe and reseed everything, run `python manage.py seed_demo_data --reset`.
 
@@ -81,6 +83,11 @@ Useful endpoints:
 - `GET /api/v1/dashboard`
 - `GET /api/v1/payouts`
 - `POST /api/v1/payouts`
+
+List scaling options:
+
+- `GET /api/v1/dashboard?payout_limit=10&ledger_limit=10` (both bounded to 1..50)
+- `GET /api/v1/payouts?limit=20&offset=0` (limit bounded to 1..100)
 
 ## Tests
 

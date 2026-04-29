@@ -57,6 +57,44 @@ class IdempotencyTests(BasePayoutTestCase):
         self.assertEqual(Payout.objects.count(), 1)
 
 
+class ApiSurfaceTests(BasePayoutTestCase):
+    def test_payout_list_uses_paginated_shape(self):
+        create_payout_request(
+            merchant=self.merchant,
+            amount_paise=1_000,
+            bank_account_id=str(self.bank_account.id),
+            idempotency_key=str(uuid.uuid4()),
+            enqueue_task=False,
+        )
+        create_payout_request(
+            merchant=self.merchant,
+            amount_paise=1_000,
+            bank_account_id=str(self.bank_account.id),
+            idempotency_key=str(uuid.uuid4()),
+            enqueue_task=False,
+        )
+
+        response = self.client.get(
+            "/api/v1/payouts?limit=1",
+            HTTP_X_MERCHANT_ID=str(self.merchant.id),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("count", response.data)
+        self.assertIn("results", response.data)
+        self.assertEqual(len(response.data["results"]), 1)
+
+    def test_dashboard_accepts_bounded_limits(self):
+        response = self.client.get(
+            "/api/v1/dashboard?payout_limit=2&ledger_limit=2",
+            HTTP_X_MERCHANT_ID=str(self.merchant.id),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertLessEqual(len(response.data["payouts"]), 2)
+        self.assertLessEqual(len(response.data["recent_ledger_entries"]), 2)
+
+
 @skipUnless(connection.vendor == "postgresql", "Concurrency locking test requires PostgreSQL")
 class ConcurrencyTests(TransactionTestCase):
     reset_sequences = True
