@@ -14,6 +14,7 @@ type PayoutFormProps = {
 export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, submissionError, onSubmit }: PayoutFormProps) {
   const [amountRupees, setAmountRupees] = useState("500");
   const [bankAccountId, setBankAccountId] = useState(bankAccounts[0]?.id || "");
+  const maxPayoutRupees = Math.floor(availableBalancePaise / 100);
 
   useEffect(() => {
     if (!bankAccountId && bankAccounts[0]?.id) {
@@ -22,19 +23,19 @@ export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, 
   }, [bankAccountId, bankAccounts]);
 
   useEffect(() => {
-    const maxWholeRupees = Math.max(1, Math.floor(availableBalancePaise / 100));
     const current = Number(amountRupees || "0");
-    if (current > maxWholeRupees) {
-      setAmountRupees(String(maxWholeRupees));
+    if (current > maxPayoutRupees) {
+      setAmountRupees(String(maxPayoutRupees));
     }
-  }, [availableBalancePaise, amountRupees]);
+  }, [amountRupees, maxPayoutRupees]);
 
   const normalizedAmount = Math.round(Number(amountRupees || "0") * 100);
+  const hasFunds = availableBalancePaise > 0;
   const exceedsAvailable = normalizedAmount > availableBalancePaise;
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!normalizedAmount || !bankAccountId || exceedsAvailable) {
+    if (!normalizedAmount || !bankAccountId || exceedsAvailable || !hasFunds) {
       return;
     }
     await onSubmit({ amountPaise: normalizedAmount, bankAccountId });
@@ -68,7 +69,8 @@ export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, 
           <span className="font-mono text-[11px] uppercase tracking-[0.24em]">Amount in INR</span>
           <input
             type="number"
-            min="1"
+            min="0"
+            max={String(Math.max(0, maxPayoutRupees))}
             step="1"
             value={amountRupees}
             onChange={(event) => setAmountRupees(event.target.value)}
@@ -100,6 +102,12 @@ export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, 
         Max payout right now: <span className="font-semibold text-ink">{formatPaise(availableBalancePaise)}</span>
       </div>
 
+      {!hasFunds ? (
+        <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          No available balance right now. Add funds first, then create a payout.
+        </div>
+      ) : null}
+
       {exceedsAvailable ? (
         <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           Requested amount is higher than available balance. Lower the amount and try again.
@@ -114,7 +122,7 @@ export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, 
 
       <button
         type="submit"
-        disabled={isSubmitting || !bankAccounts.length || exceedsAvailable}
+        disabled={isSubmitting || !bankAccounts.length || exceedsAvailable || !hasFunds || normalizedAmount < 100}
         className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-medium text-white transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Submitting..." : "Create payout"}

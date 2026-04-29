@@ -84,7 +84,6 @@ export default function App() {
     } catch (submissionError) {
       const message = submissionError instanceof Error ? submissionError.message : "Failed to create payout";
       setPayoutError(message);
-      setError(message);
     } finally {
       setIsSubmitting(false);
     }

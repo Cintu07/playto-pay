@@ -192,7 +192,9 @@ def create_payout_request(
             raise ResourceLookupError("Bank account was not found for this merchant") from exc
         balances = get_balance_snapshot(merchant)
         if balances["available_balance_paise"] < amount_paise:
-            payload = InsufficientFundsError("Available balance is lower than the requested payout").as_response()
+            payload = InsufficientFundsError(
+                f"Insufficient funds: requested {amount_paise} paise, available {balances['available_balance_paise']} paise"
+            ).as_response()
             idempotency_record.store_response(status=422, body=payload)
             idempotency_record.save(update_fields=["response_status", "response_body"])
             return ServiceResult(status_code=422, payload=payload)
