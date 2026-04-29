@@ -202,7 +202,7 @@ export default function App() {
               <BalanceCard label="Total" value={formatPaise(dashboard.balances.total_balance_paise)} tone="coral" />
             </section>
 
-            <section className="grid gap-6 xl:grid-cols-[0.88fr_1.12fr]">
+            <section className="grid items-start gap-6 xl:grid-cols-[0.88fr_1.12fr]">
               <PayoutForm
                 bankAccounts={dashboard.bank_accounts}
                 availableBalancePaise={dashboard.balances.available_balance_paise}

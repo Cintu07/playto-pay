@@ -12,7 +12,7 @@ type PayoutFormProps = {
 };
 
 export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, submissionError, onSubmit }: PayoutFormProps) {
-  const [amountRupees, setAmountRupees] = useState("500");
+  const [amountRupees, setAmountRupees] = useState("1");
   const [bankAccountId, setBankAccountId] = useState(bankAccounts[0]?.id || "");
   const maxPayoutRupees = Math.floor(availableBalancePaise / 100);
 
@@ -42,7 +42,7 @@ export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-[2.25rem] bg-white p-6 shadow-panel md:p-7">
+    <form onSubmit={handleSubmit} className="self-start rounded-[2.25rem] bg-white p-6 shadow-panel md:p-7">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="font-display text-xl font-bold text-ink">Request payout</p>
