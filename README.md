@@ -51,6 +51,7 @@ If you use Render, create the services from `render.yaml`, then set `VITE_API_BA
 Also set `CORS_ALLOWED_ORIGINS` on the backend to your frontend URL, for example `https://your-ui.onrender.com`.
 
 For demo data in a hosted environment, run `python manage.py seed_demo_data` once after the first deploy. If you really want to wipe and reseed everything, run `python manage.py seed_demo_data --reset`.
+If you only want to remove payouts created during manual testing while keeping the seed baseline intact, run `python manage.py reset_demo_runtime_data`.
 
 ## Seed data
 

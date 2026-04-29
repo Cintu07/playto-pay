@@ -1,11 +1,15 @@
 from celery import shared_task
 
+from .models import Payout
 from .services import get_pending_payout_ids, process_payout_attempt, retry_or_fail_stuck_payouts
 
 
 @shared_task(name="apps.payouts.tasks.process_pending_payout")
 def process_pending_payout(payout_id: str) -> None:
-    process_payout_attempt(payout_id=payout_id)
+    try:
+        process_payout_attempt(payout_id=payout_id)
+    except Payout.DoesNotExist:
+        return
 
 
 @shared_task(name="apps.payouts.tasks.enqueue_pending_payouts")

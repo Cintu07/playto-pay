@@ -25,8 +25,10 @@ export function PayoutTable({ payouts }: PayoutTableProps) {
 
       <div className="mt-6 space-y-3">
         {payouts.length === 0 ? (
-          <div className="rounded-[1.6rem] border border-dashed border-sand bg-sand/30 px-5 py-8 text-sm text-slate">
-            No payouts yet. Create one from the form and this list will update automatically.
+          <div className="rounded-[1.8rem] border border-dashed border-sand bg-sand/30 px-5 py-10 text-sm text-slate xl:min-h-[24rem] xl:flex xl:flex-col xl:justify-center">
+            <p className="text-base font-semibold text-ink">No payouts yet</p>
+            <p className="mt-2 leading-6">Create one from the form and this list will update automatically.</p>
+            <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.22em] text-slate">Waiting for first payout</p>
           </div>
         ) : null}
 
