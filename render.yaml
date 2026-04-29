@@ -8,7 +8,7 @@ envVarGroups:
       - key: DJANGO_ALLOWED_HOSTS
         value: .onrender.com
       - key: CORS_ALLOWED_ORIGINS
-        sync: false
+        value: https://playto-pay-ui.onrender.com
       - key: API_THROTTLE_MERCHANT_READS
         value: 180/min
       - key: API_THROTTLE_PAYOUT_WRITES
