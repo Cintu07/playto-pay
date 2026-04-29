@@ -39,7 +39,7 @@ export function PayoutForm({ bankAccounts, availableBalancePaise, isSubmitting, 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="self-start rounded-[2.25rem] bg-white p-6 shadow-panel md:p-7">
+    <form onSubmit={handleSubmit} className="w-full rounded-[2.25rem] bg-white p-6 shadow-panel md:p-7">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="font-display text-xl font-bold text-ink">Request payout</p>

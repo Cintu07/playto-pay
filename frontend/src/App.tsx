@@ -202,7 +202,7 @@ export default function App() {
               <BalanceCard label="Total" value={formatPaise(dashboard.balances.total_balance_paise)} tone="coral" />
             </section>
 
-            <section className="space-y-6 xl:grid xl:grid-cols-[0.88fr_1.12fr] xl:items-start xl:gap-6 xl:space-y-0">
+            <section className="flex flex-col gap-8">
               <PayoutForm
                 bankAccounts={dashboard.bank_accounts}
                 availableBalancePaise={dashboard.balances.available_balance_paise}
@@ -210,9 +210,7 @@ export default function App() {
                 submissionError={payoutError}
                 onSubmit={handleCreatePayout}
               />
-              <div className="xl:row-span-2">
-                <PayoutTable payouts={dashboard.payouts} />
-              </div>
+              <PayoutTable payouts={dashboard.payouts} />
               <LedgerTable entries={dashboard.recent_ledger_entries} />
             </section>
           </div>
